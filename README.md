@@ -1,5 +1,7 @@
 # wordpress-original
 
+**Español** · [English](README.en.md)
+
 Web WordPress de **Nortia Reformas**, una empresa ficticia de reformas de Gijón. Simula la web típica de una pyme española y sirve como **punto de partida para la prueba de concepto de migración a Astro + WordPress headless**.
 
 ## Requisitos
@@ -36,6 +38,7 @@ docker compose run --rm wpcli sh /setup/setup.sh
 docker compose run --rm wpcli wp plugin list
 docker compose run --rm wpcli wp post list --post_type=proyecto
 docker compose run --rm wpcli wp db export /var/www/html/backup.sql
+docker compose run --rm wpcli sh /setup/diagnostico.sh   # tiempo de respuesta con cada plugin activo
 ```
 
 ## Qué incluye
@@ -51,7 +54,7 @@ docker compose run --rm wpcli wp db export /var/www/html/backup.sql
 | Cookie Notice | Banner de cookies |
 | Redirection | Redirecciones |
 | UpdraftPlus | Copias de seguridad |
-| Wordfence | Seguridad |
+| Wordfence | Seguridad (instalado pero **desactivado**: en local añade unos 16 s por petición) |
 | WP Mail SMTP | Envío de correo |
 | Smush | Optimización de imágenes |
 | Yoast Duplicate Post | Duplicar contenido |
