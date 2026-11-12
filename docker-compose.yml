@@ -1,0 +1,66 @@
+# WordPress "original" de una empresa ficticia típica (Nortia Reformas)
+# Uso rápido:
+#   docker compose up -d
+#   docker compose run --rm wpcli sh /setup/setup.sh
+# Web:   http://localhost:8080
+# Admin: http://localhost:8080/wp-admin  (admin / admin)
+
+x-db-env: &db-env
+  WORDPRESS_DB_HOST: db
+  WORDPRESS_DB_NAME: wordpress
+  WORDPRESS_DB_USER: wordpress
+  WORDPRESS_DB_PASSWORD: wordpress
+  WORDPRESS_CONFIG_EXTRA: |
+    define('FS_METHOD', 'direct');
+    define('WP_ENVIRONMENT_TYPE', 'local');
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress
+      MARIADB_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${WP_PORT:-8080}:80"
+    environment: *db-env
+    volumes:
+      - wp_data:/var/www/html
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ./config/php.ini:/usr/local/etc/php/conf.d/zz-custom.ini:ro
+
+  # Contenedor de WP-CLI. No arranca con "up"; se usa con "docker compose run".
+  wpcli:
+    image: wordpress:cli-php8.3
+    profiles: ["cli"]
+    user: "33:33"
+    depends_on:
+      - wordpress
+    environment:
+      <<: *db-env
+      WP_URL: "http://localhost:${WP_PORT:-8080}"
+    volumes:
+      - wp_data:/var/www/html
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ./config/php.ini:/usr/local/etc/php/conf.d/zz-custom.ini:ro
+      - ./setup:/setup:ro
+
+volumes:
+  db_data:
+  wp_data:
